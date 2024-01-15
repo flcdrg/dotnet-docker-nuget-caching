@@ -15,5 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-      working-directory: ExampleWebApp
+      run: docker build ./ExampleWebApp --file ./ExampleWebApp/ExampleWebApp/Dockerfile --tag my-image-name:$(date +%s)
