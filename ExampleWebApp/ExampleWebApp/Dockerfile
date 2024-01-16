@@ -6,19 +6,21 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS publish
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["ExampleWebApp/ExampleWebApp.csproj", "ExampleWebApp/"]
 
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages dotnet restore "./ExampleWebApp/ExampleWebApp.csproj"
+RUN dotnet restore "./ExampleWebApp/ExampleWebApp.csproj"
+RUN printenv
+RUN --mount=from=nuget,target=~/.nuget/packages,readwrite ls -al ~
+RUN --mount=from=nuget,target=~/.nuget/packages,readwrite ls -al ~/.nuget/packages
+
 COPY . .
 WORKDIR "/src/ExampleWebApp"
-RUN dotnet build "./ExampleWebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build --no-restore "./ExampleWebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ExampleWebApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish --no-restore "./ExampleWebApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
